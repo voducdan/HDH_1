@@ -2,6 +2,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <stdio.h>
 using namespace std;
 
 string const SEPERATOR = " ";
@@ -26,16 +27,19 @@ vector<string> findstr(vector<string> cmd, string str)
     vector<string> result;
     for (int i = 0; i < cmd.size(); i++)
     {
-        if (cmd[i].find(str) != 1)
+        if (cmd[i].find(str) != -1)
         {
             result.push_back(to_string(i) + "   " + cmd[i]);
         }
     }
     return result;
 }
-int isNumber(string str){
-    for(int i=0;i<str.length();i++){
-        if( isdigit(str[i]) == false){
+int isNumber(string str)
+{
+    for (int i = 0; i < str.length(); i++)
+    {
+        if (isdigit(str[i]) == false)
+        {
             return 0;
         }
     }
@@ -50,13 +54,15 @@ void historyFeature(string cmd)
         if (historyCmd.size() == 0)
         {
             cout << "No commands in history" << endl;
+            historyCmd.push_back(cmd);
             return;
         }
         else
         {
+            historyCmd.push_back(cmd);
             for (int i = 0; i < historyCmd.size(); i++)
             {
-                cout << i+1 << "   " << historyCmd[i] << endl;
+                cout << i + 1 << "   " << historyCmd[i] << endl;
             }
             return;
         }
@@ -68,6 +74,7 @@ void historyFeature(string cmd)
             if (splitedCmd.size() == 3)
             {
                 cout << "Usage: grep [OPTION]... PATTERN [FILE]..." << endl;
+                historyCmd.push_back(cmd);
                 return;
             }
             vector<string> result = findstr(historyCmd, splitedCmd[3]);
@@ -75,6 +82,7 @@ void historyFeature(string cmd)
             {
                 cout << result[i] << endl;
             }
+            historyCmd.push_back(cmd);
             return;
         }
         if (splitedCmd[2] == "tail")
@@ -82,11 +90,11 @@ void historyFeature(string cmd)
             if (splitedCmd.size() == 3)
             {
                 int count = 0;
-                for (int i = historyCmd.size() -1; i >= 0; i--)
+                for (int i = historyCmd.size() - 1; i >= 0; i--)
                 {
                     if (count < 10)
                     {
-                        cout << i << "   " << historyCmd[i] << endl;
+                        cout << historyCmd.size() - i << "   " << historyCmd[i] << endl;
                         count++;
                     }
                     else
@@ -94,16 +102,18 @@ void historyFeature(string cmd)
                         break;
                     }
                 }
+                historyCmd.push_back(cmd);
                 return;
             }
             if (splitedCmd[3] == "-n" && splitedCmd.size() == 4)
             {
                 cout << "tail: option requires an argument -- 'n'" << endl;
                 cout << "Try 'tail --help' for more information." << endl;
+                historyCmd.push_back(cmd);
                 return;
             }
             int count = 0;
-            for (int i = historyCmd.size() -1 ; i >= 0; i--)
+            for (int i = historyCmd.size() - 1; i >= 0; i--)
             {
                 if (count < atoi(splitedCmd[4].c_str()))
                 {
@@ -115,25 +125,33 @@ void historyFeature(string cmd)
                     break;
                 }
             }
+            historyCmd.push_back(cmd);
+            return;
         }
         else
         {
+            historyCmd.push_back(cmd);
             return;
         }
     }
-    if(splitedCmd[0] == "!!"){
-        if(splitedCmd.size() == 1){
-            system(historyCmd[historyCmd.size() - 1].c_str());
-            return;
-        }
+    if (splitedCmd[0] == "!!")
+    {
+        system(historyCmd[historyCmd.size() - 1].c_str());
+        historyCmd.push_back("history");
+        historyCmd.push_back(historyCmd[historyCmd.size() - 1]);
         return;
     }
-    string temp = splitedCmd[0].substr(1,splitedCmd[0].length());
-    if(isNumber(temp) == 1){
-        if(splitedCmd.size() == 1){
+    string temp = splitedCmd[0].substr(1, splitedCmd[0].length());
+    if (isNumber(temp) == 1)
+    {
+        if (splitedCmd.size() == 1 && atoi(temp.c_str()) >= 0 && atoi(temp.c_str()) < historyCmd.size())
+        {
             system(historyCmd[atoi(temp.c_str())].c_str());
+            historyCmd.push_back(cmd);
             return;
         }
+        system(cmd.c_str());
+        historyCmd.push_back(cmd);
         return;
     }
     historyCmd.push_back(cmd);
@@ -146,7 +164,7 @@ int main()
     while (run)
     {
         cout << "osh>";
-        getline(cin,cmdArgv);
+        getline(cin, cmdArgv);
         if (cmdArgv == "exit")
         {
             run = 0;
