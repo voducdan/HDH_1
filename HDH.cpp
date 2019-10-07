@@ -2,7 +2,6 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
-
 using namespace std;
 
 string const SEPERATOR = " ";
@@ -33,6 +32,14 @@ vector<string> findstr(vector<string> cmd, string str)
         }
     }
     return result;
+}
+int isNumber(string str){
+    for(int i=0;i<str.length();i++){
+        if( isdigit(str[i]) == false){
+            return 0;
+        }
+    }
+    return 1;
 }
 
 void historyFeature(string cmd)
@@ -113,6 +120,21 @@ void historyFeature(string cmd)
         {
             return;
         }
+    }
+    if(splitedCmd[0] == "!!"){
+        if(splitedCmd.size() == 1){
+            system(historyCmd[historyCmd.size() - 1].c_str());
+            return;
+        }
+        return;
+    }
+    string temp = splitedCmd[0].substr(1,splitedCmd[0].length());
+    if(isNumber(temp) == 1){
+        if(splitedCmd.size() == 1){
+            system(historyCmd[atoi(temp.c_str())].c_str());
+            return;
+        }
+        return;
     }
     historyCmd.push_back(cmd);
 }
